@@ -11,15 +11,18 @@ import (
 type Adapter interface {
 	InitLoad(ctx context.Context) error
 	SetKnobs(ctx context.Context) error
-	CollectExternalMetrics(ctx context.Context)
-	CollectInternalMetrics(ctx context.Context)
+	CollectExternalMetrics(ctx context.Context) (ExternalMetrics, error)
+	CollectInternalMetrics(ctx context.Context) ([]InternalMetrics, error)
 }
 
 type Implementation struct {
-	collectorClient clients.CollectorClient
+	collectorClient *clients.CollectorClient
 }
 
-func New(collectorClient clients.CollectorClient) *Implementation {
+func New(collectorClient *clients.CollectorClient) *Implementation {
+	if collectorClient == nil {
+		return &Implementation{}
+	}
 	return &Implementation{
 		collectorClient: collectorClient,
 	}
@@ -54,7 +57,7 @@ func (i *Implementation) CollectExternalMetrics(ctx context.Context) (ExternalMe
 func (i *Implementation) CollectInternalMetrics(ctx context.Context) ([]InternalMetrics, error) {
 	resp, err := i.collectorClient.Client.CollectInternalMetrics(ctx, &desc.CollectInternalMetricsRequest{})
 	if err != nil {
-		return nil, fmt.Errorf("collectorClient.Client.CollectInternalMetrics: %w", err)
+		return nil, fmt.Errorf("collectorClient.CollectInternalMetrics: %w", err)
 	}
 	var metrics []InternalMetrics
 

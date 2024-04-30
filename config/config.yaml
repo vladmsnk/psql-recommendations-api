@@ -1,8 +1,10 @@
 grpc:
   host: "localhost"
   port: 7003
+
 collector:
   host: "localhost"
+  port: 7002
 
 postgres:
   host: "localhost"

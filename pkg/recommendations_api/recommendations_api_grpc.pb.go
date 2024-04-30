@@ -19,20 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	RecommendationsAPI_GetStates_FullMethodName        = "/collector.RecommendationsAPI/GetStates"
-	RecommendationsAPI_ApplyActions_FullMethodName     = "/collector.RecommendationsAPI/ApplyActions"
-	RecommendationsAPI_GetRewardMetrics_FullMethodName = "/collector.RecommendationsAPI/GetRewardMetrics"
-	RecommendationsAPI_InitEnvironment_FullMethodName  = "/collector.RecommendationsAPI/InitEnvironment"
+	RecommendationsAPI_GetRecommendations_FullMethodName = "/collector.RecommendationsAPI/GetRecommendations"
 )
 
 // RecommendationsAPIClient is the client API for RecommendationsAPI service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RecommendationsAPIClient interface {
-	GetStates(ctx context.Context, in *GetStatesRequest, opts ...grpc.CallOption) (*GetStatesResponse, error)
-	ApplyActions(ctx context.Context, in *ApplyActionsRequest, opts ...grpc.CallOption) (*ApplyActionsResponse, error)
-	GetRewardMetrics(ctx context.Context, in *GetRewardMetricsRequest, opts ...grpc.CallOption) (*GetRewardMetricsResponse, error)
-	InitEnvironment(ctx context.Context, in *InitEnvironmentRequest, opts ...grpc.CallOption) (*InitEnvironmentResponse, error)
+	GetRecommendations(ctx context.Context, in *GetRecommendationsRequest, opts ...grpc.CallOption) (*GetRecommendationsResponse, error)
 }
 
 type recommendationsAPIClient struct {
@@ -43,36 +37,9 @@ func NewRecommendationsAPIClient(cc grpc.ClientConnInterface) RecommendationsAPI
 	return &recommendationsAPIClient{cc}
 }
 
-func (c *recommendationsAPIClient) GetStates(ctx context.Context, in *GetStatesRequest, opts ...grpc.CallOption) (*GetStatesResponse, error) {
-	out := new(GetStatesResponse)
-	err := c.cc.Invoke(ctx, RecommendationsAPI_GetStates_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *recommendationsAPIClient) ApplyActions(ctx context.Context, in *ApplyActionsRequest, opts ...grpc.CallOption) (*ApplyActionsResponse, error) {
-	out := new(ApplyActionsResponse)
-	err := c.cc.Invoke(ctx, RecommendationsAPI_ApplyActions_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *recommendationsAPIClient) GetRewardMetrics(ctx context.Context, in *GetRewardMetricsRequest, opts ...grpc.CallOption) (*GetRewardMetricsResponse, error) {
-	out := new(GetRewardMetricsResponse)
-	err := c.cc.Invoke(ctx, RecommendationsAPI_GetRewardMetrics_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *recommendationsAPIClient) InitEnvironment(ctx context.Context, in *InitEnvironmentRequest, opts ...grpc.CallOption) (*InitEnvironmentResponse, error) {
-	out := new(InitEnvironmentResponse)
-	err := c.cc.Invoke(ctx, RecommendationsAPI_InitEnvironment_FullMethodName, in, out, opts...)
+func (c *recommendationsAPIClient) GetRecommendations(ctx context.Context, in *GetRecommendationsRequest, opts ...grpc.CallOption) (*GetRecommendationsResponse, error) {
+	out := new(GetRecommendationsResponse)
+	err := c.cc.Invoke(ctx, RecommendationsAPI_GetRecommendations_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +50,7 @@ func (c *recommendationsAPIClient) InitEnvironment(ctx context.Context, in *Init
 // All implementations must embed UnimplementedRecommendationsAPIServer
 // for forward compatibility
 type RecommendationsAPIServer interface {
-	GetStates(context.Context, *GetStatesRequest) (*GetStatesResponse, error)
-	ApplyActions(context.Context, *ApplyActionsRequest) (*ApplyActionsResponse, error)
-	GetRewardMetrics(context.Context, *GetRewardMetricsRequest) (*GetRewardMetricsResponse, error)
-	InitEnvironment(context.Context, *InitEnvironmentRequest) (*InitEnvironmentResponse, error)
+	GetRecommendations(context.Context, *GetRecommendationsRequest) (*GetRecommendationsResponse, error)
 	mustEmbedUnimplementedRecommendationsAPIServer()
 }
 
@@ -94,17 +58,8 @@ type RecommendationsAPIServer interface {
 type UnimplementedRecommendationsAPIServer struct {
 }
 
-func (UnimplementedRecommendationsAPIServer) GetStates(context.Context, *GetStatesRequest) (*GetStatesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStates not implemented")
-}
-func (UnimplementedRecommendationsAPIServer) ApplyActions(context.Context, *ApplyActionsRequest) (*ApplyActionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ApplyActions not implemented")
-}
-func (UnimplementedRecommendationsAPIServer) GetRewardMetrics(context.Context, *GetRewardMetricsRequest) (*GetRewardMetricsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRewardMetrics not implemented")
-}
-func (UnimplementedRecommendationsAPIServer) InitEnvironment(context.Context, *InitEnvironmentRequest) (*InitEnvironmentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method InitEnvironment not implemented")
+func (UnimplementedRecommendationsAPIServer) GetRecommendations(context.Context, *GetRecommendationsRequest) (*GetRecommendationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendations not implemented")
 }
 func (UnimplementedRecommendationsAPIServer) mustEmbedUnimplementedRecommendationsAPIServer() {}
 
@@ -119,74 +74,20 @@ func RegisterRecommendationsAPIServer(s grpc.ServiceRegistrar, srv Recommendatio
 	s.RegisterService(&RecommendationsAPI_ServiceDesc, srv)
 }
 
-func _RecommendationsAPI_GetStates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetStatesRequest)
+func _RecommendationsAPI_GetRecommendations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRecommendationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RecommendationsAPIServer).GetStates(ctx, in)
+		return srv.(RecommendationsAPIServer).GetRecommendations(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RecommendationsAPI_GetStates_FullMethodName,
+		FullMethod: RecommendationsAPI_GetRecommendations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecommendationsAPIServer).GetStates(ctx, req.(*GetStatesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RecommendationsAPI_ApplyActions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ApplyActionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RecommendationsAPIServer).ApplyActions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RecommendationsAPI_ApplyActions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecommendationsAPIServer).ApplyActions(ctx, req.(*ApplyActionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RecommendationsAPI_GetRewardMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRewardMetricsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RecommendationsAPIServer).GetRewardMetrics(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RecommendationsAPI_GetRewardMetrics_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecommendationsAPIServer).GetRewardMetrics(ctx, req.(*GetRewardMetricsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _RecommendationsAPI_InitEnvironment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitEnvironmentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RecommendationsAPIServer).InitEnvironment(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RecommendationsAPI_InitEnvironment_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecommendationsAPIServer).InitEnvironment(ctx, req.(*InitEnvironmentRequest))
+		return srv.(RecommendationsAPIServer).GetRecommendations(ctx, req.(*GetRecommendationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -199,20 +100,8 @@ var RecommendationsAPI_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*RecommendationsAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetStates",
-			Handler:    _RecommendationsAPI_GetStates_Handler,
-		},
-		{
-			MethodName: "ApplyActions",
-			Handler:    _RecommendationsAPI_ApplyActions_Handler,
-		},
-		{
-			MethodName: "GetRewardMetrics",
-			Handler:    _RecommendationsAPI_GetRewardMetrics_Handler,
-		},
-		{
-			MethodName: "InitEnvironment",
-			Handler:    _RecommendationsAPI_InitEnvironment_Handler,
+			MethodName: "GetRecommendations",
+			Handler:    _RecommendationsAPI_GetRecommendations_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

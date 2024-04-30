@@ -3,6 +3,7 @@ package grpc_server
 import (
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"net"
 )
 
@@ -27,6 +28,8 @@ func NewGRPCServer(cfg *GRPCConfig, opts ...grpc.ServerOption) (*GRPCServer, err
 	if c.lis, err = net.Listen("tcp", c.Addr); err != nil {
 		return nil, err
 	}
+
+	reflection.Register(c.Ser)
 
 	return c, nil
 }

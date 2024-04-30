@@ -1,4 +1,4 @@
-package recommendations_api
+package environment
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"psqlRecommendationsApi/internal/model"
-	desc "psqlRecommendationsApi/pkg/recommendations_api"
+	desc "psqlRecommendationsApi/pkg/environment"
 )
 
 type Delivery struct {
-	desc.RecommendationsAPIServer
+	desc.EnvironmentServer
 	selector Selector
 }
 
@@ -36,10 +36,8 @@ func (d *Delivery) GetStates(ctx context.Context, req *desc.GetStatesRequest) (*
 		return nil, fmt.Errorf("selector.ListTrainingMetrics: %w", err)
 	}
 
-	descMetrics := lo.Map(metrics, func(metric model.TrainingMetric, _ int) *desc.GetStatesResponse_Metric {
-		return &desc.GetStatesResponse_Metric{
-			Value: metric.Value,
-		}
+	descMetrics := lo.Map(metrics, func(metric model.TrainingMetric, _ int) float32 {
+		return metric.Value
 	})
 
 	return &desc.GetStatesResponse{Metrics: descMetrics}, nil
