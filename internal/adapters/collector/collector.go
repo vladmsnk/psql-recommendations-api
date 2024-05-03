@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"psqlRecommendationsApi/cmd/clients"
+	"psqlRecommendationsApi/internal/model"
 	desc "psqlRecommendationsApi/pkg/collector"
 	"slices"
 )
 
 type Adapter interface {
 	InitLoad(ctx context.Context) error
-	SetKnobs(ctx context.Context) error
+	SetKnobs(ctx context.Context, knobs []model.Knob) error
 	CollectExternalMetrics(ctx context.Context) (ExternalMetrics, error)
 	CollectInternalMetrics(ctx context.Context) ([]InternalMetrics, error)
+	CollectKnobs(ctx context.Context) ([]Knob, error)
 }
 
 type Implementation struct {
@@ -37,8 +39,33 @@ func (i *Implementation) InitLoad(ctx context.Context) error {
 	return nil
 }
 
-func (i *Implementation) SetKnobs(ctx context.Context) error {
-	_, err := i.collectorClient.Client.SetKnobs(ctx, &desc.SetKnobsRequest{})
+func (i *Implementation) CollectKnobs(ctx context.Context) ([]Knob, error) {
+	resp, err := i.collectorClient.Client.CollectKnobs(ctx, &desc.CollectKnobsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("collectorClient.Client.CollectKnobs: %w", err)
+	}
+	knobs := resp.GetKnobs()
+	modelKnobs := make([]Knob, 0, len(knobs))
+	for _, knob := range knobs {
+		modelKnobs = append(modelKnobs, Knob{Name: knob.GetName(), Value: float64(knob.GetFloatValue())})
+	}
+
+	return modelKnobs, nil
+
+}
+
+func (i *Implementation) SetKnobs(ctx context.Context, knobs []model.Knob) error {
+	descActions := make([]*desc.SetKnobsRequest_Knob, 0, len(knobs))
+	for _, knob := range knobs {
+		descActions = append(descActions, &desc.SetKnobsRequest_Knob{
+			Name:  knob.Name,
+			Value: float32(knob.Value),
+		})
+	}
+
+	_, err := i.collectorClient.Client.SetKnobs(ctx, &desc.SetKnobsRequest{
+		Knobs: descActions,
+	})
 	if err != nil {
 		return fmt.Errorf("collectorClient.Client.SetKnobs: %w", err)
 	}

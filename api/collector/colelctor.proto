@@ -63,7 +63,7 @@ message InitLoadResponse {}
 message SetKnobsRequest {
   message Knob {
     string name = 1;
-    fixed32 value = 2;
+    float value = 2;
   }
 
   repeated Knob knobs = 1;

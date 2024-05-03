@@ -13,16 +13,23 @@ import (
 type Delivery struct {
 	desc.EnvironmentServer
 	selector Selector
+	setter   Setter
 }
 
-func New(selector Selector) *Delivery {
+func New(selector Selector, setter Setter) *Delivery {
 	return &Delivery{
 		selector: selector,
+		setter:   setter,
 	}
 }
 
 type Selector interface {
 	ListTrainingMetrics(ctx context.Context, instanceName string) ([]model.TrainingMetric, error)
+	ListKnobs(ctx context.Context, instanceName string) ([]model.Knob, error)
+}
+
+type Setter interface {
+	SetActions(ctx context.Context, actions []model.Action) error
 }
 
 func (d *Delivery) GetStates(ctx context.Context, req *desc.GetStatesRequest) (*desc.GetStatesResponse, error) {
@@ -41,4 +48,57 @@ func (d *Delivery) GetStates(ctx context.Context, req *desc.GetStatesRequest) (*
 	})
 
 	return &desc.GetStatesResponse{Metrics: descMetrics}, nil
+}
+
+func (d *Delivery) ApplyActions(ctx context.Context, req *desc.ApplyActionsRequest) (*desc.ApplyActionsResponse, error) {
+	instanceName := req.GetInstanceName()
+	if instanceName == "" {
+		return nil, status.Error(codes.InvalidArgument, "instance_name should not be empty")
+	}
+
+	knobsToApply := lo.Map(req.GetActions(), func(action *desc.ApplyActionsRequest_Action, _ int) model.Action {
+		return model.Action{
+			Name:  action.GetName(),
+			Value: float64(action.GetValue()),
+		}
+	})
+
+	err := d.setter.SetActions(ctx, knobsToApply)
+	if err != nil {
+		return nil, fmt.Errorf("setter.ApplyActions: %w", err)
+	}
+
+	return &desc.ApplyActionsResponse{}, nil
+}
+
+func (d *Delivery) GetActionState(ctx context.Context, req *desc.GetActionStateRequest) (*desc.GetActionStateResponse, error) {
+	instanceName := req.GetInstanceName()
+	if instanceName == "" {
+		return nil, status.Error(codes.InvalidArgument, "instance_name should not be empty")
+	}
+
+	filterKnobsNames := req.GetKnobs()
+	if len(filterKnobsNames) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "knobs should not be empty")
+	}
+
+	knobs, err := d.selector.ListKnobs(ctx, instanceName)
+	if err != nil {
+		return nil, fmt.Errorf("selector.ListKnobs: %w", err)
+	}
+
+	knobs = lo.Filter(knobs, func(knob model.Knob, _ int) bool {
+		return lo.Contains(filterKnobsNames, knob.Name)
+	})
+
+	descKnobs := lo.Map(knobs, func(knob model.Knob, _ int) *desc.GetActionStateResponse_Knob {
+		return &desc.GetActionStateResponse_Knob{
+			Name:     knob.Name,
+			Value:    float32(knob.Value),
+			MaxValue: float32(knob.MaxVal),
+			MinValue: float32(knob.MinVal),
+		}
+	})
+
+	return &desc.GetActionStateResponse{Knobs: descKnobs}, nil
 }

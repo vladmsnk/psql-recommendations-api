@@ -23,6 +23,7 @@ const (
 	Environment_ApplyActions_FullMethodName     = "/collector.Environment/ApplyActions"
 	Environment_GetRewardMetrics_FullMethodName = "/collector.Environment/GetRewardMetrics"
 	Environment_InitEnvironment_FullMethodName  = "/collector.Environment/InitEnvironment"
+	Environment_GetActionState_FullMethodName   = "/collector.Environment/GetActionState"
 )
 
 // EnvironmentClient is the client API for Environment service.
@@ -33,6 +34,7 @@ type EnvironmentClient interface {
 	ApplyActions(ctx context.Context, in *ApplyActionsRequest, opts ...grpc.CallOption) (*ApplyActionsResponse, error)
 	GetRewardMetrics(ctx context.Context, in *GetRewardMetricsRequest, opts ...grpc.CallOption) (*GetRewardMetricsResponse, error)
 	InitEnvironment(ctx context.Context, in *InitEnvironmentRequest, opts ...grpc.CallOption) (*InitEnvironmentResponse, error)
+	GetActionState(ctx context.Context, in *GetActionStateRequest, opts ...grpc.CallOption) (*GetActionStateResponse, error)
 }
 
 type environmentClient struct {
@@ -79,6 +81,15 @@ func (c *environmentClient) InitEnvironment(ctx context.Context, in *InitEnviron
 	return out, nil
 }
 
+func (c *environmentClient) GetActionState(ctx context.Context, in *GetActionStateRequest, opts ...grpc.CallOption) (*GetActionStateResponse, error) {
+	out := new(GetActionStateResponse)
+	err := c.cc.Invoke(ctx, Environment_GetActionState_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EnvironmentServer is the server API for Environment service.
 // All implementations must embed UnimplementedEnvironmentServer
 // for forward compatibility
@@ -87,6 +98,7 @@ type EnvironmentServer interface {
 	ApplyActions(context.Context, *ApplyActionsRequest) (*ApplyActionsResponse, error)
 	GetRewardMetrics(context.Context, *GetRewardMetricsRequest) (*GetRewardMetricsResponse, error)
 	InitEnvironment(context.Context, *InitEnvironmentRequest) (*InitEnvironmentResponse, error)
+	GetActionState(context.Context, *GetActionStateRequest) (*GetActionStateResponse, error)
 	mustEmbedUnimplementedEnvironmentServer()
 }
 
@@ -105,6 +117,9 @@ func (UnimplementedEnvironmentServer) GetRewardMetrics(context.Context, *GetRewa
 }
 func (UnimplementedEnvironmentServer) InitEnvironment(context.Context, *InitEnvironmentRequest) (*InitEnvironmentResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitEnvironment not implemented")
+}
+func (UnimplementedEnvironmentServer) GetActionState(context.Context, *GetActionStateRequest) (*GetActionStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetActionState not implemented")
 }
 func (UnimplementedEnvironmentServer) mustEmbedUnimplementedEnvironmentServer() {}
 
@@ -191,6 +206,24 @@ func _Environment_InitEnvironment_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Environment_GetActionState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetActionStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EnvironmentServer).GetActionState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Environment_GetActionState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EnvironmentServer).GetActionState(ctx, req.(*GetActionStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Environment_ServiceDesc is the grpc.ServiceDesc for Environment service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -213,6 +246,10 @@ var Environment_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InitEnvironment",
 			Handler:    _Environment_InitEnvironment_Handler,
+		},
+		{
+			MethodName: "GetActionState",
+			Handler:    _Environment_GetActionState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -9,6 +9,7 @@ service Environment {
   rpc ApplyActions(ApplyActionsRequest) returns(ApplyActionsResponse);
   rpc GetRewardMetrics(GetRewardMetricsRequest) returns (GetRewardMetricsResponse);
   rpc InitEnvironment(InitEnvironmentRequest) returns (InitEnvironmentResponse);
+  rpc GetActionState(GetActionStateRequest) returns(GetActionStateResponse);
 }
 
 message GetStatesRequest {
@@ -20,13 +21,13 @@ message GetStatesResponse {
 }
 
 message ApplyActionsRequest {
-  message Knob {
+  message Action {
     string name = 1;
     float value = 2;
   }
 
   string instance_name = 1;
-  Knob knobs = 2;
+  repeated Action actions = 2;
 }
 
 message ApplyActionsResponse {}
@@ -45,3 +46,19 @@ message InitEnvironmentRequest {
 }
 
 message InitEnvironmentResponse {}
+
+
+message GetActionStateRequest {
+  string instance_name = 1;
+  repeated string knobs = 2;
+}
+
+message GetActionStateResponse {
+  message Knob {
+    string name = 1;
+    float value = 2;
+    float min_value = 3;
+    float max_value = 4;
+  }
+  repeated Knob knobs = 1;
+}

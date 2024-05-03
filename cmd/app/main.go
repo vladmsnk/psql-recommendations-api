@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 	"os"
-	
+	"psqlRecommendationsApi/internal/usecase/setter"
+
 	"psqlRecommendationsApi/cmd"
 	"psqlRecommendationsApi/cmd/clients"
 	"psqlRecommendationsApi/internal/adapters/collector"
@@ -26,8 +27,9 @@ func main() {
 	collectorAdapter := collector.New(collectorClient)
 
 	metricsSelector := selector.New(collectorAdapter)
+	metricsSetter := setter.New(collectorAdapter)
 
-	app := environment.New(metricsSelector)
+	app := environment.New(metricsSelector, metricsSetter)
 
 	grpcServer, err := cmd.RunGRPCServer(app, &config.ConfigStruct.GRPC)
 	if err != nil {

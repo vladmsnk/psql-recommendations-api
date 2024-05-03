@@ -14,3 +14,15 @@ type ExternalMetrics struct {
 	Tps     float64
 	Latency float64
 }
+
+type Knob struct {
+	Name   string
+	Value  float64
+	MinVal float64
+	MaxVal float64
+}
+
+type Action struct {
+	Name  string
+	Value float64
+}
