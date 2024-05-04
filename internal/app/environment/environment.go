@@ -25,11 +25,26 @@ func New(selector Selector, setter Setter) *Delivery {
 
 type Selector interface {
 	ListTrainingMetrics(ctx context.Context, instanceName string) ([]model.TrainingMetric, error)
+	ListRewardMetrics(ctx context.Context, instanceName string) (model.ExternalMetrics, error)
 	ListKnobs(ctx context.Context, instanceName string) ([]model.Knob, error)
 }
 
 type Setter interface {
 	SetActions(ctx context.Context, actions []model.Action) error
+	InitEnvironment(ctx context.Context, instanceName string) error
+}
+
+func (d *Delivery) InitEnvironment(ctx context.Context, req *desc.InitEnvironmentRequest) (*desc.InitEnvironmentResponse, error) {
+	instanceName := req.GetInstanceName()
+	if instanceName == "" {
+		return nil, status.Error(codes.InvalidArgument, "instance_name should not be empty")
+	}
+
+	err := d.setter.InitEnvironment(ctx, instanceName)
+	if err != nil {
+		return nil, fmt.Errorf("setter.InitEnvironment: %w", err)
+	}
+	return &desc.InitEnvironmentResponse{}, nil
 }
 
 func (d *Delivery) GetStates(ctx context.Context, req *desc.GetStatesRequest) (*desc.GetStatesResponse, error) {
@@ -48,6 +63,19 @@ func (d *Delivery) GetStates(ctx context.Context, req *desc.GetStatesRequest) (*
 	})
 
 	return &desc.GetStatesResponse{Metrics: descMetrics}, nil
+}
+
+func (d *Delivery) GetRewardMetrics(ctx context.Context, req *desc.GetRewardMetricsRequest) (*desc.GetRewardMetricsResponse, error) {
+	instanceName := req.GetInstanceName()
+	if instanceName == "" {
+		return nil, status.Error(codes.InvalidArgument, "instance_name should not be empty")
+	}
+
+	metrics, err := d.selector.ListRewardMetrics(ctx, instanceName)
+	if err != nil {
+		return nil, fmt.Errorf("selector.ListRewardMetrics: %w", err)
+	}
+	return &desc.GetRewardMetricsResponse{Tps: float32(metrics.Tps), Latency: float32(metrics.Latency)}, nil
 }
 
 func (d *Delivery) ApplyActions(ctx context.Context, req *desc.ApplyActionsRequest) (*desc.ApplyActionsResponse, error) {
@@ -101,4 +129,5 @@ func (d *Delivery) GetActionState(ctx context.Context, req *desc.GetActionStateR
 	})
 
 	return &desc.GetActionStateResponse{Knobs: descKnobs}, nil
+}
 }

@@ -9,12 +9,14 @@ import (
 
 type Selector interface {
 	ListTrainingMetrics(ctx context.Context, instanceName string) ([]model.TrainingMetric, error)
-	ListKnobs(ctx context.Context) ([]model.Knob, error)
+	ListRewardMetrics(ctx context.Context, instanceName string) (model.ExternalMetrics, error)
+	ListKnobs(ctx context.Context, instanceName string) ([]model.Knob, error)
 }
 
 type CollectorAdapter interface {
 	CollectInternalMetrics(ctx context.Context) ([]collector.InternalMetrics, error)
 	CollectKnobs(ctx context.Context) ([]collector.Knob, error)
+	CollectExternalMetrics(ctx context.Context) (collector.ExternalMetrics, error)
 }
 
 type Implementation struct {
@@ -25,6 +27,14 @@ func New(collector CollectorAdapter) *Implementation {
 	return &Implementation{
 		collector: collector,
 	}
+}
+
+func (i *Implementation) ListRewardMetrics(ctx context.Context, instanceName string) (model.ExternalMetrics, error) {
+	metrics, err := i.collector.CollectExternalMetrics(ctx)
+	if err != nil {
+		return model.ExternalMetrics{}, fmt.Errorf("collector.CollectExternalMetrics: %w", err)
+	}
+	return model.ExternalMetrics{Tps: metrics.Tps, Latency: metrics.Latency}, nil
 }
 
 func (i *Implementation) ListTrainingMetrics(ctx context.Context, instanceName string) ([]model.TrainingMetric, error) {

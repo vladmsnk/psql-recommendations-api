@@ -47,11 +47,15 @@ func (i *Implementation) CollectKnobs(ctx context.Context) ([]Knob, error) {
 	knobs := resp.GetKnobs()
 	modelKnobs := make([]Knob, 0, len(knobs))
 	for _, knob := range knobs {
-		modelKnobs = append(modelKnobs, Knob{Name: knob.GetName(), Value: float64(knob.GetFloatValue())})
+		modelKnobs = append(modelKnobs, Knob{
+			Name:   knob.GetName(),
+			Value:  float64(knob.GetFloatValue()),
+			MaxVal: float64(knob.GetMaxValue()),
+			MinVal: float64(knob.GetMinValue()),
+		})
 	}
 
 	return modelKnobs, nil
-
 }
 
 func (i *Implementation) SetKnobs(ctx context.Context, knobs []model.Knob) error {

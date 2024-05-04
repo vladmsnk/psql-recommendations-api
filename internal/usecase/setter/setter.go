@@ -8,10 +8,12 @@ import (
 
 type Setter interface {
 	SetActions(ctx context.Context, actions []model.Action) error
+	InitEnvironment(ctx context.Context, instanceName string) error
 }
 
 type CollectorAdapter interface {
 	SetKnobs(ctx context.Context, knobs []model.Knob) error
+	InitLoad(ctx context.Context) error
 }
 
 type Implementation struct {
@@ -23,6 +25,7 @@ func New(collector CollectorAdapter) *Implementation {
 		collector: collector,
 	}
 }
+
 func (i *Implementation) SetActions(ctx context.Context, actions []model.Action) error {
 	var knobs []model.Knob
 	for _, action := range actions {
@@ -36,4 +39,12 @@ func (i *Implementation) SetActions(ctx context.Context, actions []model.Action)
 
 	return nil
 
+}
+
+func (i *Implementation) InitEnvironment(ctx context.Context, instanceName string) error {
+	err := i.collector.InitLoad(ctx)
+	if err != nil {
+		return fmt.Errorf("setter.InitLoad: %w", err)
+	}
+	return nil
 }
