@@ -10,9 +10,10 @@ import (
 const pathToConfig = "config/config.yaml"
 
 type Config struct {
-	GRPC      grpc_server.GRPCConfig `yaml:"grpc"`
-	PG        Postgres               `yaml:"postgres"`
-	Collector Collector              `yaml:"collector"`
+	GRPC              grpc_server.GRPCConfig `yaml:"grpc"`
+	PG                Postgres               `yaml:"postgres"`
+	Collector         Collector              `yaml:"collector"`
+	RecommendationApi RecommendationApi      `yaml:"recommendation_api"`
 }
 
 type Postgres struct {
@@ -26,6 +27,11 @@ type Postgres struct {
 }
 
 type Collector struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+type RecommendationApi struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
 }

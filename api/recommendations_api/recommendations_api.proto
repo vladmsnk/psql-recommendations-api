@@ -9,13 +9,12 @@ service RecommendationsAPI {
 }
 
 message GetRecommendationsRequest {
+  string instance_name = 1;
+}
+
+message GetRecommendationsResponse {
   message Knob {
     string name = 1;
     float value = 2;
   }
-
-  string instance_name = 1;
-  repeated Knob knobs = 2;
 }
-
-message GetRecommendationsResponse {}

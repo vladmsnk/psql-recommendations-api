@@ -130,4 +130,3 @@ func (d *Delivery) GetActionState(ctx context.Context, req *desc.GetActionStateR
 
 	return &desc.GetActionStateResponse{Knobs: descKnobs}, nil
 }
-}
