@@ -14,6 +14,7 @@ type Config struct {
 	PG                Postgres               `yaml:"postgres"`
 	Collector         Collector              `yaml:"collector"`
 	RecommendationApi RecommendationApi      `yaml:"recommendation_api"`
+	Redis             Redis                  `yaml:"redis"`
 }
 
 type Postgres struct {
@@ -32,6 +33,11 @@ type Collector struct {
 }
 
 type RecommendationApi struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+type Redis struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
 }

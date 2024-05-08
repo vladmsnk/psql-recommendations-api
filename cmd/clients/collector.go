@@ -19,10 +19,16 @@ type RecommendationApiClient struct {
 	Conn   *grpc.ClientConn
 }
 
+type RedisClient struct {
+}
+
 func (cc *CollectorClient) Close() {
 	if cc.Conn != nil {
 		cc.Conn.Close()
 	}
+}
+func (cc *RedisClient) Close() {
+
 }
 
 func NewCollectorClient(config config.Collector) (*CollectorClient, error) {
@@ -47,4 +53,8 @@ func NewRecommendationApiClient(config config.RecommendationApi) (*Recommendatio
 	client := pb_redommendation.NewRecommendationsAPIClient(conn)
 
 	return &RecommendationApiClient{Client: client, Conn: conn}, err
+}
+
+func NewRedisClient(config config.Redis) (*RedisClient, error) {
+	return &RedisClient{}, nil
 }

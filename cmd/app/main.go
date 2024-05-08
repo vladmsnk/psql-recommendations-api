@@ -3,14 +3,13 @@ package main
 import (
 	"log"
 	"os"
-	"psqlRecommendationsApi/internal/usecase/setter"
-
 	"psqlRecommendationsApi/cmd"
 	"psqlRecommendationsApi/cmd/clients"
 	"psqlRecommendationsApi/internal/adapters/collector"
 	"psqlRecommendationsApi/internal/app/environment"
 	"psqlRecommendationsApi/internal/config"
-	"psqlRecommendationsApi/internal/usecase/selector"
+	"psqlRecommendationsApi/internal/usecase/environment/selector"
+	"psqlRecommendationsApi/internal/usecase/environment/setter"
 )
 
 func main() {
@@ -23,6 +22,12 @@ func main() {
 		log.Fatal(err)
 	}
 	defer collectorClient.Close()
+
+	redisClient, err := clients.NewRedisClient(config.ConfigStruct.Redis)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer redisClient.Close()
 
 	collectorAdapter := collector.New(collectorClient)
 

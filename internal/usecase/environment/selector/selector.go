@@ -19,6 +19,8 @@ type CollectorAdapter interface {
 	CollectExternalMetrics(ctx context.Context) (collector.ExternalMetrics, error)
 }
 
+// connection storage
+
 type Implementation struct {
 	collector CollectorAdapter
 }
@@ -34,6 +36,7 @@ func (i *Implementation) ListRewardMetrics(ctx context.Context, instanceName str
 	if err != nil {
 		return model.ExternalMetrics{}, fmt.Errorf("collector.CollectExternalMetrics: %w", err)
 	}
+
 	return model.ExternalMetrics{Tps: metrics.Tps, Latency: metrics.Latency}, nil
 }
 
