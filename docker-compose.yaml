@@ -40,7 +40,7 @@ services:
     networks:
       - shared_network
     build:
-      dockerfile: Dockerfile
+      dockerfile: dockerfiles/Dockerfile
       context: .
     ports:
       - "7002:7002"
