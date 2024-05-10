@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package collector;
+package discovery;
 
 option go_package = "pkg/pb";
 
@@ -10,11 +10,11 @@ service Discovery {
 
 message RegisterInstanceRequest {
   string instance_name = 1;
-  string db_dsn = 2;
+  bytes config = 2;
 }
 
 message RegisterInstanceResponse {
-  int64 id = 1;
+  string container_id = 1;
   string instance_name = 2;
   string host = 3;
   int64 port = 4;

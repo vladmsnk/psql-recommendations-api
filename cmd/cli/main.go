@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/net/context"
 	"log"
 	"os"
+	"psqlRecommendationsApi/cmd/clients"
+	"psqlRecommendationsApi/internal/config/environment"
+	desc "psqlRecommendationsApi/pkg/recommendations_api"
 
 	"github.com/spf13/cobra"
 )
@@ -12,6 +16,16 @@ var (
 	instanceName string
 	configPath   string
 )
+
+var recommendationApiClient *clients.RecommendationApiClient
+
+func Marshal(pathToConfig string) ([]byte, error) {
+	rawYaml, err := os.ReadFile(pathToConfig)
+	if err != nil {
+		return nil, fmt.Errorf("os.ReadFile: %w", err)
+	}
+	return rawYaml, nil
+}
 
 var registerInstanceCmd = &cobra.Command{
 	Use:   "register",
@@ -27,6 +41,21 @@ var registerInstanceCmd = &cobra.Command{
 		if configPath == "" {
 			log.Fatal("path should not be empty")
 		}
+
+		rawYaml, err := Marshal(configPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		instance, err := recommendationApiClient.Client.AddInstance(context.Background(), &desc.AddInstanceRequest{
+			InstanceName: instanceName,
+			Config:       rawYaml,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("Registered instance %s on %s:%d", instance.InstanceName, instance.Host, instance.Port)
+
 	},
 }
 
@@ -54,5 +83,11 @@ func init() {
 }
 
 func main() {
+	var err error
+	recommendationApiClient, err = clients.(environment.ConfigStruct.RecommendationApi)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	Execute()
 }

@@ -7,7 +7,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"psqlRecommendationsApi/internal/config"
+	discovery_config "psqlRecommendationsApi/internal/config/discovery"
+	env_config "psqlRecommendationsApi/internal/config/environment"
 	pb_collector "psqlRecommendationsApi/pkg/collector"
 	pb_discovery "psqlRecommendationsApi/pkg/discovery"
 	pb_redommendation "psqlRecommendationsApi/pkg/recommendations_api"
@@ -67,7 +68,7 @@ func NewDockerClient() (*DockerClient, error) {
 	return &DockerClient{Client: client}, nil
 }
 
-func NewCollectorClient(config config.Collector) (*CollectorClient, error) {
+func NewCollectorClient(config env_config.CollectorClient) (*CollectorClient, error) {
 	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", config.Host, config.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("grpc.NewClient: %w", err)
@@ -76,17 +77,7 @@ func NewCollectorClient(config config.Collector) (*CollectorClient, error) {
 	return &CollectorClient{Client: client, Conn: conn}, err
 }
 
-func NewRecommendationApiClient(config config.RecommendationApi) (*RecommendationApiClient, error) {
-	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", config.Host, config.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("grpc.NewClient: %w", err)
-	}
-
-	client := pb_redommendation.NewRecommendationsAPIClient(conn)
-	return &RecommendationApiClient{Client: client, Conn: conn}, err
-}
-
-func NewDiscoveryClient(config config.Discovery) (*DiscoveryClient, error) {
+func NewDiscoveryClient(config env_config.DiscoveryClient) (*DiscoveryClient, error) {
 	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", config.Host, config.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("grpc.NewClient: %w", err)
@@ -95,7 +86,7 @@ func NewDiscoveryClient(config config.Discovery) (*DiscoveryClient, error) {
 	return &DiscoveryClient{Client: client, Conn: conn}, nil
 }
 
-func NewRedisClient(config config.Redis) (*RedisClient, error) {
+func NewRedisClient(config discovery_config.Redis) (*RedisClient, error) {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
 		Password: "",

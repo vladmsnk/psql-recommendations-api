@@ -6,10 +6,10 @@ collector:
   host: "localhost"
   port: 7002
 
-postgres:
+redis:
   host: "localhost"
-  port: 5432
-  user: "user"
-  password: "password"
-  database: "postgres"
-  container_name: "postgresdb"
+  port: 6379
+
+discovery-grpc-server:
+  host: "localhost"
+  port: 7001

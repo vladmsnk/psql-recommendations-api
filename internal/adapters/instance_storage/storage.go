@@ -24,7 +24,7 @@ func New(redisClient *clients.RedisClient) *Implementation {
 }
 
 func (i *Implementation) CheckInstanceExists(ctx context.Context, instanceName string) (bool, error) {
-	return true, nil
+	return false, nil
 }
 
 func (i Implementation) SaveInstance(ctx context.Context, instance model.CollectorInstance) error {

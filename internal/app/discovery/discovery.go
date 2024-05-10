@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"os"
 	model "psqlRecommendationsApi/internal/model/discovery"
 	desc "psqlRecommendationsApi/pkg/discovery"
 )
 
 type Registrator interface {
-	RegisterInstance(ctx context.Context, instanceName, dbDsn string) (model.CollectorInstance, error)
+	RegisterInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error)
 }
 
 type Delivery struct {
@@ -31,12 +32,17 @@ func (d *Delivery) RegisterInstance(ctx context.Context, req *desc.RegisterInsta
 		return nil, status.Error(codes.InvalidArgument, "instance_name should not be empty")
 	}
 
-	dbDsn := req.GetDbDsn()
-	if dbDsn == "" {
-		return nil, status.Error(codes.InvalidArgument, "db_dsn should not be empty")
+	rawYaml, err := os.ReadFile("config/instance1.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("os.ReadFile: %w", err)
 	}
 
-	instance, err := d.registrator.RegisterInstance(ctx, instanceName, dbDsn)
+	//config := req.GetConfig()
+	//if len(config) == 0 {
+	//	return nil, status.Error(codes.InvalidArgument, "config should not be empty")
+	//}
+
+	instance, err := d.registrator.RegisterInstance(ctx, instanceName, rawYaml)
 	if err != nil {
 		if errors.Is(err, model.ErrInstanceAlreadyExists) {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
@@ -45,9 +51,9 @@ func (d *Delivery) RegisterInstance(ctx context.Context, req *desc.RegisterInsta
 	}
 
 	return &desc.RegisterInstanceResponse{
-		Id:           instance.Id,
+		ContainerId:  instance.Id,
 		InstanceName: instance.Name,
 		Host:         instance.Host,
-		Port:         instance.Port,
+		Port:         int64(instance.Port),
 	}, nil
 }

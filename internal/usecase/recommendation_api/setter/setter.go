@@ -3,6 +3,7 @@ package setter
 import (
 	"context"
 	"fmt"
+
 	discovery_model "psqlRecommendationsApi/internal/model/discovery"
 )
 

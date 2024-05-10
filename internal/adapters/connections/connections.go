@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"psqlRecommendationsApi/cmd/clients"
-	"psqlRecommendationsApi/internal/config"
 	"sync"
+
+	config "psqlRecommendationsApi/internal/config/environment"
+	discovery_model "psqlRecommendationsApi/internal/model/discovery"
 )
 
 var (
@@ -18,14 +20,20 @@ type ConnectionProvider interface {
 	SetConnection(ctx context.Context, instanceName, host string, port int64) error
 }
 
-type Implementation struct {
-	storage map[string]*clients.CollectorClient
-	mu      sync.Mutex
+type Discovery interface {
+	GetCollector(ctx context.Context, instanceName string) (discovery_model.CollectorInstance, error)
 }
 
-func New() *Implementation {
+type Implementation struct {
+	storage   map[string]*clients.CollectorClient
+	mu        sync.Mutex
+	discovery Discovery
+}
+
+func New(discovery Discovery) *Implementation {
 	return &Implementation{
-		storage: make(map[string]*clients.CollectorClient),
+		storage:   make(map[string]*clients.CollectorClient),
+		discovery: discovery,
 	}
 }
 
@@ -41,7 +49,7 @@ func (i *Implementation) GetConnection(_ context.Context, instanceName string) (
 	return connection, nil
 }
 
-func (i *Implementation) SetConnection(_ context.Context, instanceName, host string, port int) error {
+func (i *Implementation) SetConnection(ctx context.Context, instanceName string) error {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
@@ -50,7 +58,12 @@ func (i *Implementation) SetConnection(_ context.Context, instanceName, host str
 		return ErrConnectionAlreadySet
 	}
 
-	conn, err := clients.NewCollectorClient(config.Collector{Host: host, Port: port})
+	collectorInfo, err := i.discovery.GetCollector(ctx, instanceName)
+	if err != nil {
+		return fmt.Errorf("discovery.GetCollector: %w", err)
+	}
+
+	conn, err := clients.NewCollectorClient(config.CollectorClient{Host: collectorInfo.Host, Port: collectorInfo.Port})
 	if err != nil {
 		return fmt.Errorf(" clients.NewCollectorClient: %w", err)
 	}

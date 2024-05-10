@@ -2,8 +2,11 @@ package selector
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"psqlRecommendationsApi/cmd/clients"
 	"psqlRecommendationsApi/internal/adapters/collector"
+	"psqlRecommendationsApi/internal/adapters/connections"
 	"psqlRecommendationsApi/internal/model"
 )
 
@@ -13,24 +16,25 @@ type Selector interface {
 	ListKnobs(ctx context.Context, instanceName string) ([]model.Knob, error)
 }
 
-type Discovery interface {
-	GetCollector(ctx context.Context, instanceName string) (collector.Adapter, error)
+type ConnectionProvider interface {
+	GetConnection(ctx context.Context, instanceName string) (*clients.CollectorClient, error)
+	SetConnection(_ context.Context, instanceName string) error
 }
 
 type Implementation struct {
-	discovery Discovery
+	connectionProvider ConnectionProvider
 }
 
-func New(discovery Discovery) *Implementation {
+func New(connectionProvider ConnectionProvider) *Implementation {
 	return &Implementation{
-		discovery: discovery,
+		connectionProvider: connectionProvider,
 	}
 }
 
 func (i *Implementation) ListRewardMetrics(ctx context.Context, instanceName string) (model.ExternalMetrics, error) {
-	collectorAdapter, err := i.discovery.GetCollector(ctx, instanceName)
+	collectorAdapter, err := i.getCollectorAdapter(ctx, instanceName)
 	if err != nil {
-		return model.ExternalMetrics{}, fmt.Errorf("discovery.GetCollector instance_name=%s: %w", instanceName, err)
+		return model.ExternalMetrics{}, fmt.Errorf("getCollectorAdapter: %w", err)
 	}
 
 	metrics, err := collectorAdapter.CollectExternalMetrics(ctx)
@@ -44,9 +48,9 @@ func (i *Implementation) ListRewardMetrics(ctx context.Context, instanceName str
 func (i *Implementation) ListTrainingMetrics(ctx context.Context, instanceName string) ([]model.TrainingMetric, error) {
 	var res []model.TrainingMetric
 
-	collectorAdapter, err := i.discovery.GetCollector(ctx, instanceName)
+	collectorAdapter, err := i.getCollectorAdapter(ctx, instanceName)
 	if err != nil {
-		return nil, fmt.Errorf("discovery.GetCollector instance_name=%s: %w", instanceName, err)
+		return nil, fmt.Errorf("getCollectorAdapter: %w", err)
 	}
 
 	internalMetrics, err := collectorAdapter.CollectInternalMetrics(ctx)
@@ -63,9 +67,9 @@ func (i *Implementation) ListTrainingMetrics(ctx context.Context, instanceName s
 func (i *Implementation) ListKnobs(ctx context.Context, instanceName string) ([]model.Knob, error) {
 	var res []model.Knob
 
-	collectorAdapter, err := i.discovery.GetCollector(ctx, instanceName)
+	collectorAdapter, err := i.getCollectorAdapter(ctx, instanceName)
 	if err != nil {
-		return nil, fmt.Errorf("discovery.GetCollector instance_name=%s: %w", instanceName, err)
+		return nil, fmt.Errorf("getCollectorAdapter: %w", err)
 	}
 
 	knobs, err := collectorAdapter.CollectKnobs(ctx)
@@ -77,4 +81,24 @@ func (i *Implementation) ListKnobs(ctx context.Context, instanceName string) ([]
 	}
 
 	return res, nil
+}
+
+func (i *Implementation) getCollectorAdapter(ctx context.Context, instanceName string) (collector.Adapter, error) {
+	connection, err := i.connectionProvider.GetConnection(ctx, instanceName)
+	if err != nil {
+		if errors.Is(err, connections.ErrConnectionNotFound) {
+			err := i.connectionProvider.SetConnection(ctx, instanceName)
+			if err != nil {
+				return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
+			}
+			connection, err = i.connectionProvider.GetConnection(ctx, instanceName)
+			if err != nil {
+				return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
+			}
+		}
+		return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
+	}
+
+	collectorAdapter := collector.New(connection)
+	return collectorAdapter, nil
 }

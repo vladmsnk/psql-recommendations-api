@@ -3,12 +3,12 @@ package main
 import (
 	"log"
 	"os"
-
 	"psqlRecommendationsApi/cmd"
 	"psqlRecommendationsApi/cmd/clients"
-	"psqlRecommendationsApi/internal/adapters/collector"
+	"psqlRecommendationsApi/internal/adapters/connections"
+	discovery_adapter "psqlRecommendationsApi/internal/adapters/discovery"
 	"psqlRecommendationsApi/internal/app/environment"
-	"psqlRecommendationsApi/internal/config"
+	config "psqlRecommendationsApi/internal/config/environment"
 	"psqlRecommendationsApi/internal/usecase/environment/selector"
 	"psqlRecommendationsApi/internal/usecase/environment/setter"
 )
@@ -17,26 +17,20 @@ func main() {
 	if err := config.Init(); err != nil {
 		log.Fatal(err)
 	}
-	collectorClient, err := clients.NewCollectorClient(config.ConfigStruct.Collector)
+	discoveryClient, err := clients.NewDiscoveryClient(config.ConfigStruct.DiscoveryClient)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer collectorClient.Close()
-
-	redisClient, err := clients.NewRedisClient(config.ConfigStruct.Redis)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer redisClient.Close()
 
 	var (
-		collectorAdapter = collector.New(collectorClient)
-		metricsSelector  = selector.New(collectorAdapter)
-		metricsSetter    = setter.New(collectorAdapter)
-		app              = environment.New(metricsSelector, metricsSetter)
+		discovery          = discovery_adapter.New(discoveryClient)
+		connectionProvider = connections.New(discovery)
+		metricsSelector    = selector.New(connectionProvider)
+		metricsSetter      = setter.New(connectionProvider)
+		app                = environment.New(metricsSelector, metricsSetter)
 	)
 
-	grpcServer, err := cmd.RunEnvironmentGRPCServer(app, config.ConfigStruct.GRPC)
+	grpcServer, err := cmd.RunEnvironmentGRPCServer(app, config.ConfigStruct.EnvironmentGRPCServer)
 	if err != nil {
 		log.Fatal(err)
 	}

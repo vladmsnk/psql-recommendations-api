@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Discovery_RegisterInstance_FullMethodName = "/collector.Discovery/RegisterInstance"
+	Discovery_RegisterInstance_FullMethodName = "/discovery.Discovery/RegisterInstance"
 )
 
 // DiscoveryClient is the client API for Discovery service.
@@ -96,7 +96,7 @@ func _Discovery_RegisterInstance_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Discovery_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "collector.Discovery",
+	ServiceName: "discovery.Discovery",
 	HandlerType: (*DiscoveryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

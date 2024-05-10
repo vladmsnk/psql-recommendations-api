@@ -30,7 +30,7 @@ type Selector interface {
 }
 
 type Setter interface {
-	SetActions(ctx context.Context, actions []model.Action) error
+	SetActions(ctx context.Context, instanceName string, actions []model.Action) error
 	InitEnvironment(ctx context.Context, instanceName string) error
 }
 
@@ -91,7 +91,7 @@ func (d *Delivery) ApplyActions(ctx context.Context, req *desc.ApplyActionsReque
 		}
 	})
 
-	err := d.setter.SetActions(ctx, knobsToApply)
+	err := d.setter.SetActions(ctx, instanceName, knobsToApply)
 	if err != nil {
 		return nil, fmt.Errorf("setter.ApplyActions: %w", err)
 	}
