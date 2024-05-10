@@ -7,9 +7,9 @@ import (
 	"net"
 )
 
-type GRPCConfig struct {
-	Host string `yaml:"host"` // Server Host
-	Port int    `yaml:"port"` // Server Port
+type GRPCConfiger interface {
+	GetHost() string
+	GetPort() int
 }
 
 type GRPCServer struct {
@@ -18,10 +18,10 @@ type GRPCServer struct {
 	lis  net.Listener
 }
 
-func NewGRPCServer(cfg *GRPCConfig, opts ...grpc.ServerOption) (*GRPCServer, error) {
+func NewGRPCServer[T GRPCConfiger](cfg T, opts ...grpc.ServerOption) (*GRPCServer, error) {
 	c := &GRPCServer{
 		Ser:  grpc.NewServer(opts...),
-		Addr: fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Addr: fmt.Sprintf("%s:%d", cfg.GetHost(), cfg.GetPort()),
 	}
 
 	var err error

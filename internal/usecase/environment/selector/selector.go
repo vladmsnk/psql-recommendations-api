@@ -13,26 +13,27 @@ type Selector interface {
 	ListKnobs(ctx context.Context, instanceName string) ([]model.Knob, error)
 }
 
-type CollectorAdapter interface {
-	CollectInternalMetrics(ctx context.Context) ([]collector.InternalMetrics, error)
-	CollectKnobs(ctx context.Context) ([]collector.Knob, error)
-	CollectExternalMetrics(ctx context.Context) (collector.ExternalMetrics, error)
+type Discovery interface {
+	GetCollector(ctx context.Context, instanceName string) (collector.Adapter, error)
 }
-
-// connection storage
 
 type Implementation struct {
-	collector CollectorAdapter
+	discovery Discovery
 }
 
-func New(collector CollectorAdapter) *Implementation {
+func New(discovery Discovery) *Implementation {
 	return &Implementation{
-		collector: collector,
+		discovery: discovery,
 	}
 }
 
 func (i *Implementation) ListRewardMetrics(ctx context.Context, instanceName string) (model.ExternalMetrics, error) {
-	metrics, err := i.collector.CollectExternalMetrics(ctx)
+	collectorAdapter, err := i.discovery.GetCollector(ctx, instanceName)
+	if err != nil {
+		return model.ExternalMetrics{}, fmt.Errorf("discovery.GetCollector instance_name=%s: %w", instanceName, err)
+	}
+
+	metrics, err := collectorAdapter.CollectExternalMetrics(ctx)
 	if err != nil {
 		return model.ExternalMetrics{}, fmt.Errorf("collector.CollectExternalMetrics: %w", err)
 	}
@@ -41,10 +42,14 @@ func (i *Implementation) ListRewardMetrics(ctx context.Context, instanceName str
 }
 
 func (i *Implementation) ListTrainingMetrics(ctx context.Context, instanceName string) ([]model.TrainingMetric, error) {
-	//todo get collector by instanceName
 	var res []model.TrainingMetric
 
-	internalMetrics, err := i.collector.CollectInternalMetrics(ctx)
+	collectorAdapter, err := i.discovery.GetCollector(ctx, instanceName)
+	if err != nil {
+		return nil, fmt.Errorf("discovery.GetCollector instance_name=%s: %w", instanceName, err)
+	}
+
+	internalMetrics, err := collectorAdapter.CollectInternalMetrics(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("collector.CollectInternalMetrics: %w", err)
 	}
@@ -58,7 +63,12 @@ func (i *Implementation) ListTrainingMetrics(ctx context.Context, instanceName s
 func (i *Implementation) ListKnobs(ctx context.Context, instanceName string) ([]model.Knob, error) {
 	var res []model.Knob
 
-	knobs, err := i.collector.CollectKnobs(ctx)
+	collectorAdapter, err := i.discovery.GetCollector(ctx, instanceName)
+	if err != nil {
+		return nil, fmt.Errorf("discovery.GetCollector instance_name=%s: %w", instanceName, err)
+	}
+
+	knobs, err := collectorAdapter.CollectKnobs(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("collector.CollectKnobs: %w", err)
 	}

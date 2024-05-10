@@ -23,6 +23,12 @@ type Implementation struct {
 	mu      sync.Mutex
 }
 
+func New() *Implementation {
+	return &Implementation{
+		storage: make(map[string]*clients.CollectorClient),
+	}
+}
+
 func (i *Implementation) GetConnection(_ context.Context, instanceName string) (*clients.CollectorClient, error) {
 	i.mu.Lock()
 	defer i.mu.Unlock()

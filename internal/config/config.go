@@ -13,6 +13,7 @@ type Config struct {
 	GRPC              grpc_server.GRPCConfig `yaml:"grpc"`
 	PG                Postgres               `yaml:"postgres"`
 	Collector         Collector              `yaml:"collector"`
+	Discovery         Discovery              `yaml:"discovery"`
 	RecommendationApi RecommendationApi      `yaml:"recommendation_api"`
 	Redis             Redis                  `yaml:"redis"`
 }
@@ -28,6 +29,11 @@ type Postgres struct {
 }
 
 type Collector struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+type Discovery struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
 }

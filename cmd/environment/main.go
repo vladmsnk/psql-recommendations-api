@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+
 	"psqlRecommendationsApi/cmd"
 	"psqlRecommendationsApi/cmd/clients"
 	"psqlRecommendationsApi/internal/adapters/collector"
@@ -16,7 +17,6 @@ func main() {
 	if err := config.Init(); err != nil {
 		log.Fatal(err)
 	}
-
 	collectorClient, err := clients.NewCollectorClient(config.ConfigStruct.Collector)
 	if err != nil {
 		log.Fatal(err)
@@ -29,14 +29,14 @@ func main() {
 	}
 	defer redisClient.Close()
 
-	collectorAdapter := collector.New(collectorClient)
+	var (
+		collectorAdapter = collector.New(collectorClient)
+		metricsSelector  = selector.New(collectorAdapter)
+		metricsSetter    = setter.New(collectorAdapter)
+		app              = environment.New(metricsSelector, metricsSetter)
+	)
 
-	metricsSelector := selector.New(collectorAdapter)
-	metricsSetter := setter.New(collectorAdapter)
-
-	app := environment.New(metricsSelector, metricsSetter)
-
-	grpcServer, err := cmd.RunGRPCServer(app, &config.ConfigStruct.GRPC)
+	grpcServer, err := cmd.RunEnvironmentGRPCServer(app, config.ConfigStruct.GRPC)
 	if err != nil {
 		log.Fatal(err)
 	}

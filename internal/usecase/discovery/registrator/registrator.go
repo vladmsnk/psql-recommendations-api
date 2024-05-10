@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"psqlRecommendationsApi/cmd/clients"
+	"psqlRecommendationsApi/internal/adapters/collector"
 	"psqlRecommendationsApi/internal/adapters/connections"
 	model "psqlRecommendationsApi/internal/model/discovery"
 )
@@ -14,7 +15,7 @@ type Registrator interface {
 }
 
 type InstanceGetter interface {
-	GetInstance(ctx context.Context, instanceName string) (model.CollectorInstance, error)
+	GetCollector(ctx context.Context, instanceName string) (collector.Adapter, error)
 }
 
 type Storage interface {
@@ -60,7 +61,7 @@ func (i *Implementation) RegisterInstance(ctx context.Context, instanceName, dbD
 		return model.CollectorInstance{}, fmt.Errorf("instanceCreator.CreateInstance: %w", err)
 	}
 
-	err = i.connectionProvider.SetConnection(ctx, instanceName, instance.Name, instance.Port)
+	err = i.connectionProvider.SetConnection(ctx, instanceName, instance.Name, int(instance.Port))
 	if err != nil {
 		if errors.Is(err, connections.ErrConnectionAlreadySet) {
 		}
@@ -76,11 +77,11 @@ func (i *Implementation) RegisterInstance(ctx context.Context, instanceName, dbD
 	return instance, nil
 }
 
-func (i *Implementation) GetInstance(ctx context.Context, instanceName string) (model.CollectorInstance, error) {
-	instance, err := i.storage.GetInstance(ctx, instanceName)
+func (i *Implementation) GetCollector(ctx context.Context, instanceName string) (collector.Adapter, error) {
+	conn, err := i.connectionProvider.GetConnection(ctx, instanceName)
 	if err != nil {
-		return model.CollectorInstance{}, fmt.Errorf("i.storage.GetInstance: %w", err)
+		return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
 	}
 
-	return instance, nil
+	return collector.New(conn), nil
 }

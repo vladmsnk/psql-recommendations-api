@@ -2,11 +2,14 @@ package clients
 
 import (
 	"fmt"
+
 	docker_client "github.com/docker/docker/client"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"psqlRecommendationsApi/internal/config"
 	pb_collector "psqlRecommendationsApi/pkg/collector"
+	pb_discovery "psqlRecommendationsApi/pkg/discovery"
 	pb_redommendation "psqlRecommendationsApi/pkg/recommendations_api"
 )
 
@@ -20,14 +23,25 @@ type RecommendationApiClient struct {
 	Conn   *grpc.ClientConn
 }
 
+type DiscoveryClient struct {
+	Client pb_discovery.DiscoveryClient
+	Conn   *grpc.ClientConn
+}
+
 type DockerClient struct {
 	Client *docker_client.Client
 }
 
 type RedisClient struct {
+	Client *redis.Client
 }
 
 func (cc *CollectorClient) Close() {
+	if cc.Conn != nil {
+		cc.Conn.Close()
+	}
+}
+func (cc *DiscoveryClient) Close() {
 	if cc.Conn != nil {
 		cc.Conn.Close()
 	}
@@ -40,7 +54,9 @@ func (cc *DockerClient) Close() {
 }
 
 func (cc *RedisClient) Close() {
-
+	if cc.Client != nil {
+		cc.Client.Close()
+	}
 }
 
 func NewDockerClient() (*DockerClient, error) {
@@ -52,29 +68,39 @@ func NewDockerClient() (*DockerClient, error) {
 }
 
 func NewCollectorClient(config config.Collector) (*CollectorClient, error) {
-
 	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", config.Host, config.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("grpc.NewClient: %w", err)
 	}
-
 	client := pb_collector.NewCollectorClient(conn)
-
 	return &CollectorClient{Client: client, Conn: conn}, err
 }
 
 func NewRecommendationApiClient(config config.RecommendationApi) (*RecommendationApiClient, error) {
-
 	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", config.Host, config.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("grpc.NewClient: %w", err)
 	}
 
 	client := pb_redommendation.NewRecommendationsAPIClient(conn)
-
 	return &RecommendationApiClient{Client: client, Conn: conn}, err
 }
 
+func NewDiscoveryClient(config config.Discovery) (*DiscoveryClient, error) {
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", config.Host, config.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, fmt.Errorf("grpc.NewClient: %w", err)
+	}
+	client := pb_discovery.NewDiscoveryClient(conn)
+	return &DiscoveryClient{Client: client, Conn: conn}, nil
+}
+
 func NewRedisClient(config config.Redis) (*RedisClient, error) {
-	return &RedisClient{}, nil
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
+		Password: "",
+		DB:       0,
+	})
+
+	return &RedisClient{Client: redisClient}, nil
 }

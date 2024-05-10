@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	RecommendationsAPI_GetRecommendations_FullMethodName = "/collector.RecommendationsAPI/GetRecommendations"
+	RecommendationsAPI_AddInstance_FullMethodName = "/collector.RecommendationsAPI/AddInstance"
 )
 
 // RecommendationsAPIClient is the client API for RecommendationsAPI service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RecommendationsAPIClient interface {
-	GetRecommendations(ctx context.Context, in *GetRecommendationsRequest, opts ...grpc.CallOption) (*GetRecommendationsResponse, error)
+	AddInstance(ctx context.Context, in *AddInstanceRequest, opts ...grpc.CallOption) (*AddInstanceResponse, error)
 }
 
 type recommendationsAPIClient struct {
@@ -37,9 +37,9 @@ func NewRecommendationsAPIClient(cc grpc.ClientConnInterface) RecommendationsAPI
 	return &recommendationsAPIClient{cc}
 }
 
-func (c *recommendationsAPIClient) GetRecommendations(ctx context.Context, in *GetRecommendationsRequest, opts ...grpc.CallOption) (*GetRecommendationsResponse, error) {
-	out := new(GetRecommendationsResponse)
-	err := c.cc.Invoke(ctx, RecommendationsAPI_GetRecommendations_FullMethodName, in, out, opts...)
+func (c *recommendationsAPIClient) AddInstance(ctx context.Context, in *AddInstanceRequest, opts ...grpc.CallOption) (*AddInstanceResponse, error) {
+	out := new(AddInstanceResponse)
+	err := c.cc.Invoke(ctx, RecommendationsAPI_AddInstance_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *recommendationsAPIClient) GetRecommendations(ctx context.Context, in *G
 // All implementations must embed UnimplementedRecommendationsAPIServer
 // for forward compatibility
 type RecommendationsAPIServer interface {
-	GetRecommendations(context.Context, *GetRecommendationsRequest) (*GetRecommendationsResponse, error)
+	AddInstance(context.Context, *AddInstanceRequest) (*AddInstanceResponse, error)
 	mustEmbedUnimplementedRecommendationsAPIServer()
 }
 
@@ -58,8 +58,8 @@ type RecommendationsAPIServer interface {
 type UnimplementedRecommendationsAPIServer struct {
 }
 
-func (UnimplementedRecommendationsAPIServer) GetRecommendations(context.Context, *GetRecommendationsRequest) (*GetRecommendationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRecommendations not implemented")
+func (UnimplementedRecommendationsAPIServer) AddInstance(context.Context, *AddInstanceRequest) (*AddInstanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddInstance not implemented")
 }
 func (UnimplementedRecommendationsAPIServer) mustEmbedUnimplementedRecommendationsAPIServer() {}
 
@@ -74,20 +74,20 @@ func RegisterRecommendationsAPIServer(s grpc.ServiceRegistrar, srv Recommendatio
 	s.RegisterService(&RecommendationsAPI_ServiceDesc, srv)
 }
 
-func _RecommendationsAPI_GetRecommendations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRecommendationsRequest)
+func _RecommendationsAPI_AddInstance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddInstanceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RecommendationsAPIServer).GetRecommendations(ctx, in)
+		return srv.(RecommendationsAPIServer).AddInstance(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RecommendationsAPI_GetRecommendations_FullMethodName,
+		FullMethod: RecommendationsAPI_AddInstance_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecommendationsAPIServer).GetRecommendations(ctx, req.(*GetRecommendationsRequest))
+		return srv.(RecommendationsAPIServer).AddInstance(ctx, req.(*AddInstanceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -100,8 +100,8 @@ var RecommendationsAPI_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*RecommendationsAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetRecommendations",
-			Handler:    _RecommendationsAPI_GetRecommendations_Handler,
+			MethodName: "AddInstance",
+			Handler:    _RecommendationsAPI_AddInstance_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
