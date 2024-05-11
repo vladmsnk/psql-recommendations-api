@@ -50,3 +50,12 @@ func (i *Implementation) RegisterInstance(ctx context.Context, instanceName stri
 
 	return instance, nil
 }
+
+func (i *Implementation) GetInstanceInfo(ctx context.Context, instanceName string) (model.CollectorInstance, error) {
+	instance, err := i.storage.GetInstance(ctx, instanceName)
+	if err != nil {
+		return model.CollectorInstance{}, fmt.Errorf("storage.GetInstance: %w", err)
+	}
+
+	return instance, nil
+}

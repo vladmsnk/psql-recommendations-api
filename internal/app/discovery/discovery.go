@@ -15,14 +15,20 @@ type Registrator interface {
 	RegisterInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error)
 }
 
-type Delivery struct {
-	desc.DiscoveryServer
-	registrator Registrator
+type InstanceInfoGetter interface {
+	GetInstanceInfo(ctx context.Context, instanceName string) (model.CollectorInstance, error)
 }
 
-func New(registrator Registrator) *Delivery {
+type Delivery struct {
+	desc.DiscoveryServer
+	registrator        Registrator
+	instanceInfoGetter InstanceInfoGetter
+}
+
+func New(registrator Registrator, instanceInfoGetter InstanceInfoGetter) *Delivery {
 	return &Delivery{
-		registrator: registrator,
+		registrator:        registrator,
+		instanceInfoGetter: instanceInfoGetter,
 	}
 }
 
@@ -55,5 +61,24 @@ func (d *Delivery) RegisterInstance(ctx context.Context, req *desc.RegisterInsta
 		InstanceName: instance.Name,
 		Host:         instance.Host,
 		Port:         int64(instance.Port),
+	}, nil
+}
+
+func (d *Delivery) GetInstanceInfo(ctx context.Context, req *desc.GetInstanceInfoRequest) (*desc.GetInstanceInfoResponse, error) {
+	instanceName := req.GetInstanceName()
+	if instanceName == "" {
+		return nil, status.Error(codes.InvalidArgument, "instance_name should not be empty")
+	}
+
+	instanceInfo, err := d.instanceInfoGetter.GetInstanceInfo(ctx, instanceName)
+	if err != nil {
+		return nil, fmt.Errorf("instanceInfoGetter.GetInstanceInfo: %w", err)
+	}
+
+	return &desc.GetInstanceInfoResponse{
+		InstanceName: instanceInfo.Name,
+		ContainerId:  instanceInfo.Id,
+		Host:         instanceInfo.Host,
+		Port:         int64(instanceInfo.Port),
 	}, nil
 }

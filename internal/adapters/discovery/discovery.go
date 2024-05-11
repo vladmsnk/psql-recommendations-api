@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"fmt"
 	"psqlRecommendationsApi/cmd/clients"
 	model "psqlRecommendationsApi/internal/model/discovery"
 	desc "psqlRecommendationsApi/pkg/discovery"
@@ -9,7 +10,7 @@ import (
 
 type Adapter interface {
 	RegisterInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error)
-	GetCollector(ctx context.Context, instanceName string) (model.CollectorInstance, error)
+	GetInstanceInfo(ctx context.Context, instanceName string) (model.CollectorInstance, error)
 }
 
 type Implementation struct {
@@ -28,16 +29,29 @@ func (i *Implementation) RegisterInstance(ctx context.Context, instanceName stri
 		Config:       config,
 	})
 	if err != nil {
-		return model.CollectorInstance{}, err
+		return model.CollectorInstance{}, fmt.Errorf("client.GetInstanceInfo: %w", err)
 	}
+
 	return model.CollectorInstance{
-		Id:   instance.Id,
+		Id:   instance.ContainerId,
 		Name: instance.InstanceName,
 		Host: instance.Host,
 		Port: int(instance.Port),
 	}, nil
 }
 
-func (i *Implementation) GetCollector(ctx context.Context, instanceName string) (model.CollectorInstance, error) {
-	return model.CollectorInstance{}, nil
+func (i *Implementation) GetInstanceInfo(ctx context.Context, instanceName string) (model.CollectorInstance, error) {
+	instance, err := i.client.Client.GetInstanceInfo(ctx, &desc.GetInstanceInfoRequest{
+		InstanceName: instanceName,
+	})
+	if err != nil {
+		return model.CollectorInstance{}, fmt.Errorf("client.GetInstanceInfo: %w", err)
+	}
+
+	return model.CollectorInstance{
+		Id:   instance.ContainerId,
+		Name: instance.InstanceName,
+		Host: instance.Host,
+		Port: int(instance.Port),
+	}, nil
 }

@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"psqlRecommendationsApi/cmd/clients"
-	"psqlRecommendationsApi/internal/config/environment"
 	desc "psqlRecommendationsApi/pkg/recommendations_api"
 
 	"github.com/spf13/cobra"
@@ -70,8 +69,10 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(registerInstanceCmd)
+
 	registerInstanceCmd.Flags().StringVarP(&instanceName, "name", "n", "", "Name of the instance (required)")
 	registerInstanceCmd.Flags().StringVarP(&instanceName, "path", "p", "", "Path to the PostgreSQL config file (required)")
+
 	err := registerInstanceCmd.MarkFlagRequired("name")
 	if err != nil {
 		log.Fatal("registerInstanceCmd.MarkFlagRequired: ", err)
@@ -83,11 +84,11 @@ func init() {
 }
 
 func main() {
-	var err error
-	recommendationApiClient, err = clients.(environment.ConfigStruct.RecommendationApi)
-	if err != nil {
-		log.Fatal(err)
-	}
+	//var err error
+	//recommendationApiClient, err =
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	Execute()
 }

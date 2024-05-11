@@ -32,7 +32,6 @@ func New(dockerClient *clients.DockerClient) *Implementation {
 
 func (i *Implementation) CreateInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error) {
 	var containerId string
-
 	envs, err := GetEnsFromConfig(config)
 	if err != nil {
 		return model.CollectorInstance{}, fmt.Errorf("GetEnsFromConfig: %w", err)
@@ -59,6 +58,10 @@ func (i *Implementation) CreateInstance(ctx context.Context, instanceName string
 	}
 	err = i.dockerClient.Client.ContainerStart(ctx, containerId, container.StartOptions{})
 	if err != nil {
+		err = i.dockerClient.Client.ContainerRemove(ctx, containerId, container.RemoveOptions{Force: true})
+		if err != nil {
+			return model.CollectorInstance{}, fmt.Errorf("dockerClient.Client.ContainerRemove: %w", err)
+		}
 		return model.CollectorInstance{}, err
 	}
 

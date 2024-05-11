@@ -21,7 +21,7 @@ type ConnectionProvider interface {
 }
 
 type Discovery interface {
-	GetCollector(ctx context.Context, instanceName string) (discovery_model.CollectorInstance, error)
+	GetInstanceInfo(ctx context.Context, instanceName string) (discovery_model.CollectorInstance, error)
 }
 
 type Implementation struct {
@@ -58,7 +58,7 @@ func (i *Implementation) SetConnection(ctx context.Context, instanceName string)
 		return ErrConnectionAlreadySet
 	}
 
-	collectorInfo, err := i.discovery.GetCollector(ctx, instanceName)
+	collectorInfo, err := i.discovery.GetInstanceInfo(ctx, instanceName)
 	if err != nil {
 		return fmt.Errorf("discovery.GetCollector: %w", err)
 	}
