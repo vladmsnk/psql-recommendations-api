@@ -2,9 +2,11 @@ package setter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"psqlRecommendationsApi/cmd/clients"
 	"psqlRecommendationsApi/internal/adapters/collector"
+	"psqlRecommendationsApi/internal/adapters/connections"
 	"psqlRecommendationsApi/internal/model"
 )
 
@@ -34,11 +36,10 @@ func (i *Implementation) SetActions(ctx context.Context, instanceName string, ac
 		knobs = append(knobs, model.Knob{Name: action.Name, Value: action.Value})
 	}
 
-	connection, err := i.connectionProvider.GetConnection(ctx, instanceName)
+	collectorAdapter, err := i.getCollectorAdapter(ctx, instanceName)
 	if err != nil {
-		return fmt.Errorf("connectionProvider.GetConnection: %w", err)
+		return fmt.Errorf("i.getCollectorAdapter: %w", err)
 	}
-	collectorAdapter := collector.New(connection)
 
 	err = collectorAdapter.SetKnobs(ctx, knobs)
 	if err != nil {
@@ -50,11 +51,11 @@ func (i *Implementation) SetActions(ctx context.Context, instanceName string, ac
 }
 
 func (i *Implementation) InitEnvironment(ctx context.Context, instanceName string) error {
-	connection, err := i.connectionProvider.GetConnection(ctx, instanceName)
+
+	collectorAdapter, err := i.getCollectorAdapter(ctx, instanceName)
 	if err != nil {
-		return fmt.Errorf("connectionProvider.GetConnection: %w", err)
+		return fmt.Errorf("i.getCollectorAdapter: %w", err)
 	}
-	collectorAdapter := collector.New(connection)
 
 	err = collectorAdapter.InitLoad(ctx)
 	if err != nil {
@@ -66,19 +67,21 @@ func (i *Implementation) InitEnvironment(ctx context.Context, instanceName strin
 func (i *Implementation) getCollectorAdapter(ctx context.Context, instanceName string) (collector.Adapter, error) {
 	connection, err := i.connectionProvider.GetConnection(ctx, instanceName)
 	if err != nil {
-		return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
+		if errors.Is(err, connections.ErrConnectionNotFound) {
+			err := i.connectionProvider.SetConnection(ctx, instanceName)
+			if err != nil {
+				return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
+			}
+
+			connection, err = i.connectionProvider.GetConnection(ctx, instanceName)
+			if err != nil {
+				return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
+		}
 	}
 
-	if connection == nil {
-		err := i.connectionProvider.SetConnection(ctx, instanceName)
-		if err != nil {
-			return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
-		}
-		connection, err = i.connectionProvider.GetConnection(ctx, instanceName)
-		if err != nil {
-			return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
-		}
-	}
 	collectorAdapter := collector.New(connection)
 	return collectorAdapter, nil
 }

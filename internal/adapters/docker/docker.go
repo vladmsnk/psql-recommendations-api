@@ -47,9 +47,10 @@ func (i *Implementation) CreateInstance(ctx context.Context, instanceName string
 		return model.CollectorInstance{}, fmt.Errorf("GetEnsFromConfig: %w", err)
 	}
 
-	configuration := &container.Config{ExposedPorts: map[nat.Port]struct{}{
-		nat.Port("7002" + "/tcp"): {},
-	}, Env: envs, Cmd: []string{"/app"}, Image: imageName}
+	configuration := &container.Config{
+		ExposedPorts: map[nat.Port]struct{}{
+			nat.Port("7002" + "/tcp"): {},
+		}, Env: envs, Cmd: []string{"/app"}, Image: imageName}
 
 	_, err = i.dockerClient.Client.ImagePull(ctx, imageName, image.PullOptions{})
 	if err != nil {
@@ -63,7 +64,7 @@ func (i *Implementation) CreateInstance(ctx context.Context, instanceName string
 		return model.CollectorInstance{}, fmt.Errorf("dockerClient.Client.ContainerList: %w", err)
 	}
 	if len(containers) == 0 {
-		createResponse, err := i.dockerClient.Client.ContainerCreate(ctx, configuration, &container.HostConfig{PortBindings: portBindings}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"shared_network": {}}}, nil, instanceName)
+		createResponse, err := i.dockerClient.Client.ContainerCreate(ctx, configuration, &container.HostConfig{Privileged: true, PortBindings: portBindings}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"shared_network": {}}}, nil, instanceName)
 		if err != nil {
 			return model.CollectorInstance{}, err
 		}
@@ -96,6 +97,7 @@ func GetEnsFromConfig(config []byte) ([]string, error) {
 		"PG_SSLMODE=" + p.SSLMode,
 		"PG_HOST=" + p.Host,
 		"PG_PORT=" + strconv.Itoa(p.Port),
+		"PG_CONTAINER_NAME" + p.ContainerName,
 	}
 	return envs, nil
 }

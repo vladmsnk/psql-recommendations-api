@@ -26,6 +26,9 @@ func New(redisClient *clients.RedisClient) *Implementation {
 }
 
 func (i *Implementation) CheckInstanceExists(ctx context.Context, instanceName string) (bool, error) {
+
+	i.redisClient.Client.Del(ctx, instanceName)
+
 	res, err := i.redisClient.Client.Exists(ctx, instanceName).Result()
 	if err != nil {
 		return false, fmt.Errorf("redisClient.Client.Exists: %w", err)
