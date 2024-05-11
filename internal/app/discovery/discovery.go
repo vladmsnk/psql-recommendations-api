@@ -13,22 +13,17 @@ import (
 
 type Registrator interface {
 	RegisterInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error)
-}
-
-type InstanceInfoGetter interface {
 	GetInstanceInfo(ctx context.Context, instanceName string) (model.CollectorInstance, error)
 }
 
 type Delivery struct {
 	desc.DiscoveryServer
-	registrator        Registrator
-	instanceInfoGetter InstanceInfoGetter
+	registrator Registrator
 }
 
-func New(registrator Registrator, instanceInfoGetter InstanceInfoGetter) *Delivery {
+func New(registrator Registrator) *Delivery {
 	return &Delivery{
-		registrator:        registrator,
-		instanceInfoGetter: instanceInfoGetter,
+		registrator: registrator,
 	}
 }
 
@@ -70,7 +65,7 @@ func (d *Delivery) GetInstanceInfo(ctx context.Context, req *desc.GetInstanceInf
 		return nil, status.Error(codes.InvalidArgument, "instance_name should not be empty")
 	}
 
-	instanceInfo, err := d.instanceInfoGetter.GetInstanceInfo(ctx, instanceName)
+	instanceInfo, err := d.registrator.GetInstanceInfo(ctx, instanceName)
 	if err != nil {
 		return nil, fmt.Errorf("instanceInfoGetter.GetInstanceInfo: %w", err)
 	}

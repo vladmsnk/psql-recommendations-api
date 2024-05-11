@@ -30,23 +30,23 @@ func New(storage Storage, instanceCreator InstanceCreator) *Implementation {
 }
 
 func (i *Implementation) RegisterInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error) {
-	exists, err := i.storage.CheckInstanceExists(ctx, instanceName)
-	if err != nil {
-		return model.CollectorInstance{}, fmt.Errorf("storage.CheckInstanceExists: %w", err)
-	}
-	if exists {
-		return model.CollectorInstance{}, model.ErrInstanceAlreadyExists
-	}
+	//exists, err := i.storage.CheckInstanceExists(ctx, instanceName)
+	//if err != nil {
+	//	return model.CollectorInstance{}, fmt.Errorf("storage.CheckInstanceExists: %w", err)
+	//}
+	//if exists {
+	//	return model.CollectorInstance{}, model.ErrInstanceAlreadyExists
+	//}
 
 	instance, err := i.instanceCreator.CreateInstance(ctx, instanceName, config)
 	if err != nil {
 		return model.CollectorInstance{}, fmt.Errorf("instanceCreator.CreateInstance: %w", err)
 	}
 
-	err = i.storage.SaveInstance(ctx, instance)
-	if err != nil {
-		return model.CollectorInstance{}, fmt.Errorf("storage.SaveInstance: %w", err)
-	}
+	//err = i.storage.SaveInstance(ctx, instance)
+	//if err != nil {
+	//	return model.CollectorInstance{}, fmt.Errorf("storage.SaveInstance: %w", err)
+	//}
 
 	return instance, nil
 }

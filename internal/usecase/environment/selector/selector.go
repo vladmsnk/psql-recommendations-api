@@ -91,12 +91,14 @@ func (i *Implementation) getCollectorAdapter(ctx context.Context, instanceName s
 			if err != nil {
 				return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
 			}
+
 			connection, err = i.connectionProvider.GetConnection(ctx, instanceName)
 			if err != nil {
 				return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
 			}
+		} else {
+			return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
 		}
-		return nil, fmt.Errorf("connectionProvider.GetConnection: %w", err)
 	}
 
 	collectorAdapter := collector.New(connection)

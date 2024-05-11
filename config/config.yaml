@@ -10,6 +10,10 @@ redis:
   host: "localhost"
   port: 6379
 
+discovery-grpc-client:
+  host: "localhost"
+  port: 7001
+
 discovery-grpc-server:
   host: "localhost"
   port: 7001

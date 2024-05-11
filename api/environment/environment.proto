@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package collector;
+package environment;
 
 option go_package = "pkg/pb";
 

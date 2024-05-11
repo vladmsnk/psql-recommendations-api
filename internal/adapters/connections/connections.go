@@ -17,7 +17,7 @@ var (
 
 type ConnectionProvider interface {
 	GetConnection(ctx context.Context, instanceName string) (*clients.CollectorClient, error)
-	SetConnection(ctx context.Context, instanceName, host string, port int64) error
+	SetConnection(ctx context.Context, instanceName string) error
 }
 
 type Discovery interface {
@@ -63,11 +63,12 @@ func (i *Implementation) SetConnection(ctx context.Context, instanceName string)
 		return fmt.Errorf("discovery.GetCollector: %w", err)
 	}
 
-	conn, err := clients.NewCollectorClient(config.CollectorClient{Host: collectorInfo.Host, Port: collectorInfo.Port})
+	conn, err := clients.NewCollectorClient(config.CollectorClient{Host: "localhost", Port: collectorInfo.Port})
 	if err != nil {
 		return fmt.Errorf(" clients.NewCollectorClient: %w", err)
 	}
 
 	i.storage[instanceName] = conn
+
 	return nil
 }

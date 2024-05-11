@@ -15,9 +15,9 @@ const (
 )
 
 type CollectorInstance struct {
-	Id     string
-	Name   string
-	Host   string
-	Port   int
-	Status InstanceStatus
+	Id     string         `json:"id"`
+	Name   string         `json:"name"`
+	Host   string         `json:"host"`
+	Port   int            `json:"port"`
+	Status InstanceStatus `json:"status"`
 }

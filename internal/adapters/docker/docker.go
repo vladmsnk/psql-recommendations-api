@@ -7,7 +7,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
-
+	"github.com/docker/go-connections/nat"
 	"gopkg.in/yaml.v3"
 	"psqlRecommendationsApi/cmd/clients"
 	model "psqlRecommendationsApi/internal/model/discovery"
@@ -32,10 +32,25 @@ func New(dockerClient *clients.DockerClient) *Implementation {
 
 func (i *Implementation) CreateInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error) {
 	var containerId string
+
+	portBindings := nat.PortMap{
+		"7002/tcp": []nat.PortBinding{
+			{
+				HostIP:   "0.0.0.0", // Set to localhost IP
+				HostPort: "7002",
+			},
+		},
+	}
+
 	envs, err := GetEnsFromConfig(config)
 	if err != nil {
 		return model.CollectorInstance{}, fmt.Errorf("GetEnsFromConfig: %w", err)
 	}
+
+	configuration := &container.Config{ExposedPorts: map[nat.Port]struct{}{
+		nat.Port("7002" + "/tcp"): {},
+	}, Env: envs, Cmd: []string{"/app"}, Image: imageName}
+
 	_, err = i.dockerClient.Client.ImagePull(ctx, imageName, image.PullOptions{})
 	if err != nil {
 		return model.CollectorInstance{}, err
@@ -48,7 +63,7 @@ func (i *Implementation) CreateInstance(ctx context.Context, instanceName string
 		return model.CollectorInstance{}, fmt.Errorf("dockerClient.Client.ContainerList: %w", err)
 	}
 	if len(containers) == 0 {
-		createResponse, err := i.dockerClient.Client.ContainerCreate(ctx, &container.Config{Env: envs, Cmd: []string{"/app"}, Image: imageName}, &container.HostConfig{}, &network.NetworkingConfig{map[string]*network.EndpointSettings{"shared_network": {}}}, nil, instanceName)
+		createResponse, err := i.dockerClient.Client.ContainerCreate(ctx, configuration, &container.HostConfig{PortBindings: portBindings}, &network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{"shared_network": {}}}, nil, instanceName)
 		if err != nil {
 			return model.CollectorInstance{}, err
 		}
@@ -65,7 +80,7 @@ func (i *Implementation) CreateInstance(ctx context.Context, instanceName string
 		return model.CollectorInstance{}, err
 	}
 
-	return model.CollectorInstance{Id: containerId, Host: instanceName}, nil
+	return model.CollectorInstance{Id: containerId, Host: instanceName, Port: 7002, Name: instanceName}, nil
 }
 
 func GetEnsFromConfig(config []byte) ([]string, error) {

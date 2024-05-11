@@ -10,7 +10,7 @@ import (
 const pathToConfig = "config/config.yaml"
 
 type Config struct {
-	DiscoveryClient       DiscoveryClient           `yaml:"discovery"`
+	DiscoveryClient       DiscoveryClient           `yaml:"discovery-grpc-client"`
 	EnvironmentGRPCServer cmd.GRPCConfigEnvironment `yaml:"grpc"`
 	CollectorClient       CollectorClient           `yaml:"collector"`
 }

@@ -77,6 +77,7 @@ func init() {
 	if err != nil {
 		log.Fatal("registerInstanceCmd.MarkFlagRequired: ", err)
 	}
+
 	err = registerInstanceCmd.MarkFlagRequired("path")
 	if err != nil {
 		log.Fatal("registerInstanceCmd.MarkFlagRequired: ", err)

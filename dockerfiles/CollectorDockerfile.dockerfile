@@ -7,4 +7,6 @@ ENV PG_HOST=postgresdb \
     PG_DATABASE=postgres \
     PG_SSLMODE=disable
 
+EXPOSE 7002
+
 CMD ["/app"]

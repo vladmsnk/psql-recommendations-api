@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	RecommendationsAPI_AddInstance_FullMethodName       = "/collector.RecommendationsAPI/AddInstance"
-	RecommendationsAPI_GetRecommendation_FullMethodName = "/collector.RecommendationsAPI/GetRecommendation"
+	RecommendationsAPI_AddInstance_FullMethodName       = "/recommendations.RecommendationsAPI/AddInstance"
+	RecommendationsAPI_GetRecommendation_FullMethodName = "/recommendations.RecommendationsAPI/GetRecommendation"
 )
 
 // RecommendationsAPIClient is the client API for RecommendationsAPI service.
@@ -129,7 +129,7 @@ func _RecommendationsAPI_GetRecommendation_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var RecommendationsAPI_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "collector.RecommendationsAPI",
+	ServiceName: "recommendations.RecommendationsAPI",
 	HandlerType: (*RecommendationsAPIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -6,9 +6,6 @@ import (
 )
 
 type Registrator interface {
-	RegisterInstance(ctx context.Context, instanceName, dbDsn string) (model.CollectorInstance, error)
-}
-
-type InstanceInfoGetter interface {
+	RegisterInstance(ctx context.Context, instanceName string, config []byte) (model.CollectorInstance, error)
 	GetInstanceInfo(ctx context.Context, instanceName string) (model.CollectorInstance, error)
 }

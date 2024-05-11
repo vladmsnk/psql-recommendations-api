@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Environment_GetStates_FullMethodName        = "/collector.Environment/GetStates"
-	Environment_ApplyActions_FullMethodName     = "/collector.Environment/ApplyActions"
-	Environment_GetRewardMetrics_FullMethodName = "/collector.Environment/GetRewardMetrics"
-	Environment_InitEnvironment_FullMethodName  = "/collector.Environment/InitEnvironment"
-	Environment_GetActionState_FullMethodName   = "/collector.Environment/GetActionState"
+	Environment_GetStates_FullMethodName        = "/environment.Environment/GetStates"
+	Environment_ApplyActions_FullMethodName     = "/environment.Environment/ApplyActions"
+	Environment_GetRewardMetrics_FullMethodName = "/environment.Environment/GetRewardMetrics"
+	Environment_InitEnvironment_FullMethodName  = "/environment.Environment/InitEnvironment"
+	Environment_GetActionState_FullMethodName   = "/environment.Environment/GetActionState"
 )
 
 // EnvironmentClient is the client API for Environment service.
@@ -228,7 +228,7 @@ func _Environment_GetActionState_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Environment_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "collector.Environment",
+	ServiceName: "environment.Environment",
 	HandlerType: (*EnvironmentServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
